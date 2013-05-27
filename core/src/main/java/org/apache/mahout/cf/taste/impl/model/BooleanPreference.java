@@ -30,10 +30,16 @@ public final class BooleanPreference implements Preference, Serializable {
   
   private final long userID;
   private final long itemID;
+  private boolean repeatable; 
   
   public BooleanPreference(long userID, long itemID) {
+    this(userID, itemID, false);
+  }
+  
+  public BooleanPreference(long userID, long itemID, boolean repeatable) {
     this.userID = userID;
     this.itemID = itemID;
+    this.repeatable = repeatable;
   }
   
   @Override
@@ -57,8 +63,18 @@ public final class BooleanPreference implements Preference, Serializable {
   }
   
   @Override
-  public String toString() {
-    return "BooleanPreference[userID: " + userID + ", itemID:" + itemID + ']';
+  public boolean isRepeatable() {
+    return repeatable;
+  }
+
+  @Override
+  public void setRepeatable(boolean repeatable) {
+    this.repeatable = repeatable;
   }
   
+  @Override
+  public String toString() {
+    return "BooleanPreference[userID: " + userID + ", itemID:" + itemID + ", repeatable:" + repeatable + ']';
+  }
+
 }

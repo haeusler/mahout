@@ -35,9 +35,23 @@ import java.util.List;
 public final class GenericUserBasedRecommenderTest extends TasteTestCase {
 
   @Test
-  public void testRecommender() throws Exception {
+  public void testNonRepeatingRecommender() throws Exception {
     Recommender recommender = buildRecommender();
-    List<RecommendedItem> recommended = recommender.recommend(1, 1);
+    List<RecommendedItem> recommended = recommender.recommend(1, 3);
+    assertNotNull(recommended);
+    assertEquals(1, recommended.size());
+    RecommendedItem firstRecommended = recommended.get(0);
+    assertEquals(2, firstRecommended.getItemID());
+    assertEquals(0.1f, firstRecommended.getValue(), EPSILON);
+    recommender.refresh(null);
+    assertEquals(2, firstRecommended.getItemID());
+    assertEquals(0.1f, firstRecommended.getValue(), EPSILON);
+  }
+  
+  @Test
+  public void testRepeatingRecommender() throws Exception {
+    Recommender recommender = buildRecommender(true);
+    List<RecommendedItem> recommended = recommender.recommend(1, 3);
     assertNotNull(recommended);
     assertEquals(1, recommended.size());
     RecommendedItem firstRecommended = recommended.get(0);
@@ -133,7 +147,14 @@ public final class GenericUserBasedRecommenderTest extends TasteTestCase {
                     {0.2, 0.3, 0.3, 0.6},
                     {0.4, 0.4, 0.5, 0.9},
                     {null, null, null, null, 1.0},
-            });
+            },
+            new boolean[][] {
+                {true, true }, 
+                {true, true, false, false },
+                {false, false, false, false }, 
+                {false, false, false, false, true }
+            });            
+    
     UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
     UserNeighborhood neighborhood = new NearestNUserNeighborhood(3, similarity, dataModel);
     UserBasedRecommender recommender = new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
@@ -141,12 +162,16 @@ public final class GenericUserBasedRecommenderTest extends TasteTestCase {
     assertNotNull(mostSimilar);
     assertEquals(0, mostSimilar.length);
   }
-
+  
   private static UserBasedRecommender buildRecommender() throws TasteException {
+    return buildRecommender(false); 
+  }
+
+  private static UserBasedRecommender buildRecommender(boolean repeating) throws TasteException {
     DataModel dataModel = getDataModel();
     UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
     UserNeighborhood neighborhood = new NearestNUserNeighborhood(2, similarity, dataModel);
-    return new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
+    return new GenericUserBasedRecommender(dataModel, neighborhood, similarity, repeating);
   }
 
 }

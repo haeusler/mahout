@@ -52,11 +52,13 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
   private final long[] ids;
   private long id;
   private final float[] values;
+  private final boolean[] repeatables;
 
   public GenericUserPreferenceArray(int size) {
     this.ids = new long[size];
     values = new float[size];
     this.id = Long.MIN_VALUE; // as a sort of 'unspecified' value
+    this.repeatables = new boolean[size];
   }
 
   public GenericUserPreferenceArray(List<? extends Preference> prefs) {
@@ -74,6 +76,7 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
       }
       ids[i] = pref.getItemID();
       values[i] = pref.getValue();
+      repeatables[i] = pref.isRepeatable();     
     }
     id = userID;
   }
@@ -81,10 +84,11 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
   /**
    * This is a private copy constructor for clone().
    */
-  private GenericUserPreferenceArray(long[] ids, long id, float[] values) {
+  private GenericUserPreferenceArray(long[] ids, long id, float[] values, boolean[] repeatables) {
     this.ids = ids;
     this.id = id;
     this.values = values;
+    this.repeatables = repeatables;
   }
 
   @Override
@@ -102,6 +106,7 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
     id = pref.getUserID();
     ids[i] = pref.getItemID();
     values[i] = pref.getValue();
+    repeatables[i] = pref.isRepeatable();   
   }
 
   @Override
@@ -147,6 +152,16 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
     values[i] = value;
   }
 
+  @Override
+  public boolean isRepeatable(int i) {
+    return repeatables[i];
+  }
+
+  @Override
+  public void setRepeatable(int i, boolean repeatable) {
+    repeatables[i] = repeatable;
+  }
+  
   @Override
   public void sortByUser() { }
 
@@ -225,12 +240,15 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
 
   @Override
   public GenericUserPreferenceArray clone() {
-    return new GenericUserPreferenceArray(ids.clone(), id, values.clone());
+    return new GenericUserPreferenceArray(ids.clone(), id, values.clone(), repeatables.clone());
   }
 
   @Override
   public int hashCode() {
-    return (int) (id >> 32) ^ (int) id ^ Arrays.hashCode(ids) ^ Arrays.hashCode(values);
+    return (int) (id >> 32) ^ (int) id
+        ^ Arrays.hashCode(ids)
+        ^ Arrays.hashCode(values)
+        ^ Arrays.hashCode(repeatables);
   }
 
   @Override
@@ -239,7 +257,10 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
       return false;
     }
     GenericUserPreferenceArray otherArray = (GenericUserPreferenceArray) other;
-    return id == otherArray.id && Arrays.equals(ids, otherArray.ids) && Arrays.equals(values, otherArray.values);
+    return id == otherArray.id
+        && Arrays.equals(ids, otherArray.ids)
+        && Arrays.equals(values, otherArray.values)
+        && Arrays.equals(repeatables, otherArray.repeatables);
   }
 
   @Override
@@ -267,8 +288,11 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
         result.append(',');
       }
       result.append(ids[i]);
-      result.append('=');
+      result.append("=(");
       result.append(values[i]);
+      result.append(',');
+      result.append(repeatables[i]);
+      result.append(')');
     }
     result.append("}]");
     return result.toString();
@@ -300,6 +324,16 @@ public final class GenericUserPreferenceArray implements PreferenceArray {
     @Override
     public void setValue(float value) {
       values[i] = value;
+    }
+
+    @Override
+    public boolean isRepeatable() {
+      return GenericUserPreferenceArray.this.isRepeatable(i);
+    }
+    
+    @Override
+    public void setRepeatable(boolean repeatable) {
+      GenericUserPreferenceArray.this.setRepeatable(i, repeatable);
     }
 
   }

@@ -33,14 +33,21 @@ public class GenericPreference implements Preference, Serializable {
   private final long userID;
   private final long itemID;
   private float value;
+  private boolean repeatable;
   
   public GenericPreference(long userID, long itemID, float value) {
+    this(userID, itemID, value, false);
+  }
+  
+  public GenericPreference(long userID, long itemID, float value,
+      boolean repeatable) {
     Preconditions.checkArgument(!Float.isNaN(value), "NaN value");
     this.userID = userID;
     this.itemID = itemID;
     this.value = value;
+    this.repeatable = repeatable;
   }
-  
+
   @Override
   public long getUserID() {
     return userID;
@@ -63,8 +70,18 @@ public class GenericPreference implements Preference, Serializable {
   }
   
   @Override
+  public boolean isRepeatable() {
+    return repeatable;
+  }
+
+  @Override
+  public void setRepeatable(boolean repeatable) {
+    this.repeatable = repeatable;
+  }
+    
+  @Override
   public String toString() {
-    return "GenericPreference[userID: " + userID + ", itemID:" + itemID + ", value:" + value + ']';
+    return "GenericPreference[userID: " + userID + ", itemID:" + itemID + ", value:" + value + ", repeatable:" + repeatable + ']';
   }
   
 }

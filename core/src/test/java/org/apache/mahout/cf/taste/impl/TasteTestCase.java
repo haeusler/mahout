@@ -34,12 +34,17 @@ import java.util.List;
 public abstract class TasteTestCase extends MahoutTestCase {
 
   public static DataModel getDataModel(long[] userIDs, Double[][] prefValues) {
+    return getDataModel(userIDs, prefValues, null);
+  }
+
+  public static DataModel getDataModel(long[] userIDs, Double[][] prefValues, boolean[][] repeatables) {
     FastByIDMap<PreferenceArray> result = new FastByIDMap<PreferenceArray>();
     for (int i = 0; i < userIDs.length; i++) {
       List<Preference> prefsList = Lists.newArrayList();
       for (int j = 0; j < prefValues[i].length; j++) {
         if (prefValues[i][j] != null) {
-          prefsList.add(new GenericPreference(userIDs[i], j, prefValues[i][j].floatValue()));
+          boolean repeatable = repeatables == null ? false : repeatables[i][j];
+          prefsList.add(new GenericPreference(userIDs[i], j, prefValues[i][j].floatValue(), repeatable));
         }
       }
       if (!prefsList.isEmpty()) {
@@ -73,6 +78,12 @@ public abstract class TasteTestCase extends MahoutTestCase {
                     {0.2, 0.3, 0.3},
                     {0.4, 0.3, 0.5},
                     {0.7, 0.3, 0.8},
+            },
+            new boolean[][] {
+                {true, true }, 
+                {true, true, false },
+                {false, false, false}, 
+                {false, true, true}
             });
   }
 

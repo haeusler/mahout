@@ -102,6 +102,23 @@ public interface PreferenceArray extends Cloneable, Serializable, Iterable<Prefe
   void setValue(int i, float value);
   
   /**
+   * @param i
+   *          index
+   * @return preference repeatability from preference at i
+   */
+  boolean isRepeatable(int i);
+
+  /**
+   * Sets preference repeatability for preference at i.
+   * 
+   * @param i
+   *          index
+   * @param value
+   *          new preference repeatability
+   */
+  void setRepeatable(int i, boolean repeatable);
+  
+  /**
    * @return independent copy of this object
    */
   PreferenceArray clone();

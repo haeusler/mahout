@@ -261,5 +261,18 @@ public final class PearsonCorrelationSimilarityTest extends SimilarityTestCase {
 
     assertEquals(-0.435285750066007, similarity.userSimilarity(1L, 2L), EPSILON);
   }
+  
+  @Test
+  public void testOddUserCase() throws Exception {
+    DataModel dataModel = getDataModel(
+            new long[] {1, 2},
+            new Double[][] {
+                    {-0.1, 0.1},
+                    {-0.14, 0.15}
+            });
+    double correlation = new PearsonCorrelationSimilarity(dataModel).userSimilarity(1, 2);
+    System.out.println(correlation);
+    assertCorrelationEquals(1.0, correlation);
+  }
 
 }

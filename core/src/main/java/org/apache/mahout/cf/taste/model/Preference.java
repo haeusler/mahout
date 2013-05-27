@@ -45,4 +45,8 @@ public interface Preference {
    */
   void setValue(float value);
   
+  boolean isRepeatable();
+  
+  void setRepeatable(boolean repeatable);
+  
 }

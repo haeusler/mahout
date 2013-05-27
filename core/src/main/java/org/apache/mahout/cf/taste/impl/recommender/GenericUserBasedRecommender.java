@@ -27,6 +27,7 @@ import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.FastIDSet;
 import org.apache.mahout.cf.taste.impl.common.RefreshHelper;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.recommender.IDRescorer;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
@@ -51,16 +52,25 @@ public class GenericUserBasedRecommender extends AbstractRecommender implements 
   
   private final UserNeighborhood neighborhood;
   private final UserSimilarity similarity;
+  private final boolean repeating;
   private final RefreshHelper refreshHelper;
   private EstimatedPreferenceCapper capper;
   
   public GenericUserBasedRecommender(DataModel dataModel,
+      UserNeighborhood neighborhood,
+      UserSimilarity similarity) {
+    this(dataModel, neighborhood, similarity, false);
+  }
+
+  public GenericUserBasedRecommender(DataModel dataModel,
                                      UserNeighborhood neighborhood,
-                                     UserSimilarity similarity) {
+                                     UserSimilarity similarity,
+                                     boolean repeating) {
     super(dataModel);
     Preconditions.checkArgument(neighborhood != null, "neighborhood is null");
     this.neighborhood = neighborhood;
     this.similarity = similarity;
+    this.repeating = repeating;
     this.refreshHelper = new RefreshHelper(new Callable<Void>() {
       @Override
       public Void call() {
@@ -171,7 +181,17 @@ public class GenericUserBasedRecommender extends AbstractRecommender implements 
     for (long userID : theNeighborhood) {
       possibleItemIDs.addAll(dataModel.getItemIDsFromUser(userID));
     }
-    possibleItemIDs.removeAll(dataModel.getItemIDsFromUser(theUserID));
+    if (repeating) {
+      for (Preference preference : dataModel.getPreferencesFromUser(theUserID)) {
+        if (preference.isRepeatable()) {
+          possibleItemIDs.add(preference.getItemID());
+        } else {
+          possibleItemIDs.remove(preference.getItemID());
+        }
+      }
+    } else {
+      possibleItemIDs.removeAll(dataModel.getItemIDsFromUser(theUserID));
+    }
     return possibleItemIDs;
   }
   

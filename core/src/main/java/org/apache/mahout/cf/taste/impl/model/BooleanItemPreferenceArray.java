@@ -41,10 +41,12 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
   
   private final long[] ids;
   private long id;
+  private final boolean[] repeatables;
   
   public BooleanItemPreferenceArray(int size) {
     this.ids = new long[size];
     this.id = Long.MIN_VALUE; // as a sort of 'unspecified' value
+    this.repeatables = new boolean[size];
   }
   
   public BooleanItemPreferenceArray(List<? extends Preference> prefs, boolean forOneUser) {
@@ -53,6 +55,7 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
     for (int i = 0; i < size; i++) {
       Preference pref = prefs.get(i);
       ids[i] = forOneUser ? pref.getItemID() : pref.getUserID();
+      repeatables[i] = pref.isRepeatable();     
     }
     if (size > 0) {
       id = forOneUser ? prefs.get(0).getUserID() : prefs.get(0).getItemID();
@@ -62,9 +65,10 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
   /**
    * This is a private copy constructor for clone().
    */
-  private BooleanItemPreferenceArray(long[] ids, long id) {
+  private BooleanItemPreferenceArray(long[] ids, long id, boolean[] repeatables) {
     this.ids = ids;
     this.id = id;
+    this.repeatables = repeatables;
   }
   
   @Override
@@ -81,6 +85,7 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
   public void set(int i, Preference pref) {
     id = pref.getItemID();
     ids[i] = pref.getUserID();
+    repeatables[i] = pref.isRepeatable();
   }
   
   @Override
@@ -97,7 +102,17 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
   public long getItemID(int i) {
     return id;
   }
-  
+    
+  @Override
+  public boolean isRepeatable(int i) {
+    return repeatables[i];
+  }
+
+  @Override
+  public void setRepeatable(int i, boolean repeatable) {
+    repeatables[i] = repeatable;
+  }
+
   /**
    * {@inheritDoc}
    * 
@@ -157,21 +172,25 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
   
   @Override
   public BooleanItemPreferenceArray clone() {
-    return new BooleanItemPreferenceArray(ids.clone(), id);
+    return new BooleanItemPreferenceArray(ids.clone(), id, repeatables.clone());
   }
-
+  
   @Override
   public int hashCode() {
-    return (int) (id >> 32) ^ (int) id ^ Arrays.hashCode(ids);
+    return (int) (id >> 32) ^ (int) id
+        ^ Arrays.hashCode(ids)
+        ^ Arrays.hashCode(repeatables);
   }
-
+  
   @Override
   public boolean equals(Object other) {
     if (!(other instanceof BooleanItemPreferenceArray)) {
       return false;
     }
     BooleanItemPreferenceArray otherArray = (BooleanItemPreferenceArray) other;
-    return id == otherArray.id && Arrays.equals(ids, otherArray.ids);
+    return id == otherArray.id
+        && Arrays.equals(ids, otherArray.ids) 
+        && Arrays.equals(repeatables, otherArray.repeatables);
   }
   
   @Override
@@ -196,6 +215,8 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
         result.append(',');
       }
       result.append(ids[i]);
+      result.append('=');
+      result.append(repeatables[i]);
     }
     result.append("}]");
     return result.toString();
@@ -208,7 +229,7 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
     private PreferenceView(int i) {
       this.i = i;
     }
-    
+            
     @Override
     public long getUserID() {
       return BooleanItemPreferenceArray.this.getUserID(i);
@@ -229,6 +250,16 @@ public final class BooleanItemPreferenceArray implements PreferenceArray {
       throw new UnsupportedOperationException();
     }
     
+    @Override
+    public boolean isRepeatable() {
+      return BooleanItemPreferenceArray.this.isRepeatable(i);
+    }
+    
+    @Override
+    public void setRepeatable(boolean repeatable) {
+      BooleanItemPreferenceArray.this.setRepeatable(i, repeatable);
+    }
+
   }
   
 }
